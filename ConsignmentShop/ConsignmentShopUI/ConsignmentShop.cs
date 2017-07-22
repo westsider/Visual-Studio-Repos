@@ -123,6 +123,8 @@ namespace ConsignmentShopUI
             itemsBinding.ResetBindings(false);
             // reloading list for Vendors UI
             vendorsBinding.ResetBindings(false);
+
+            // TODO: - Implement adding Books
         }
     }
 }
