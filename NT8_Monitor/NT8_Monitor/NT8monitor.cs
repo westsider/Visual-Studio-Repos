@@ -19,8 +19,8 @@ namespace NT8_Monitor
          X. pasre connection, update ui messageOutputLlabel, 
          X. if connected message, update ui connected color greed, red, connectedOutputLabel
          X, last message, messageLabel
-         0. git commit
-         0. clean up code vars, funcs
+         X. git commit
+         X. clean up code vars, funcs
          4. send mail
          5. connected since message, onlineSinceOutput
 
@@ -48,13 +48,14 @@ namespace NT8_Monitor
         public string lastUpdate = "notSet";
         public string message = "notSet";
 
+        // main function
         public NT8monitor()
         {
             InitializeComponent();
             CreateFileWatcher(dirName);
         }
 
-        //// get data from csv file
+        // get data from csv file
         public void getData()
         {
             //// Read the file and display it line by line.
@@ -70,33 +71,28 @@ namespace NT8_Monitor
             }
         }
 
-        // parse string for connected
+        // parse connected
         public string parseRowConnection(string row)
         {
             string a = "Connected";
             string b = "Disconnected";
             string found = "Nothing Found";
-
             if (row.Contains(a)) {
-                found = a;
-            }
-
+                found = a; }
             if (row.Contains(b)) {
-                found = b;
-            }
+                found = b; }
             return found;
         }
-
+        // parse date
         public void parseRowDate()
         {
             string[] feilds = rows.Last().Split(null);
             lastUpdate = feilds[3] + " " + feilds[4];
             message = "Connection Status";
         }
-
+        //   File watcher magic
         public void CreateFileWatcher(string path)
         {
-            // Create a new FileSystemWatcher and set its properties.
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = path;
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
@@ -110,7 +106,7 @@ namespace NT8_Monitor
             watcher.EnableRaisingEvents = true;
         }
 
-        // Define the event handlers.
+        // File has changed, ,getData, Parse Connected, Connected, Parse Date, 
          void OnChanged(object sender, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed, created, or deleted.
@@ -118,34 +114,26 @@ namespace NT8_Monitor
             getData();
             string con =  parseRowConnection(row: rows.Last());
             parseRowDate();
-
             connectedOutputLabel.BeginInvoke(new UpdateTextInLabel(SetLabelText), con);
             lastUpdateOutputLabel.BeginInvoke(new UpdateTextInLastUpdate(SetlastUpdateOutputLabel), lastUpdate);
             connectedOutputLabel.BeginInvoke(new UpdateTextInMessage(SetMessageOutputLlabel), message);
+
+            //  TODO: - Send Mail Update
         }
         void SetLabelText(string text)
         {
-            //SetText method.
             connectedOutputLabel.Text = text;
-            if (text == "Connected")
-            {
-                connectedOutputLabel.BackColor = Color.DodgerBlue;
-            }
-            if (text == "Disconnected")
-            {
-                connectedOutputLabel.BackColor = Color.Red;
-            }
-            
+            if (text == "Connected") {
+                connectedOutputLabel.BackColor = Color.DodgerBlue; }
+            if (text == "Disconnected") {
+                connectedOutputLabel.BackColor = Color.Red; } 
         }
         void SetlastUpdateOutputLabel(string text) {
-            //SetText method.
             lastUpdateOutputLabel.Text = text;
         }
         void SetMessageOutputLlabel(string text){
-            //SetText method.
             messageOutputLlabel.Text = text;
         }
-
     }
 }
 
