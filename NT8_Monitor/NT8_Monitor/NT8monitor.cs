@@ -81,11 +81,14 @@ namespace NT8_Monitor
         {
             string a = "Connected";
             string b = "Disconnected";
+            string c = "Trade";
             string found = "Nothing Found";
             if (row.Contains(a)) {
                 found = a; }
             if (row.Contains(b)) {
                 found = b; }
+            if (row.Contains(c)) {
+                found = c; }
             return found;
         }
         // parse date

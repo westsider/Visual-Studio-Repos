@@ -65,9 +65,9 @@
             this.messageOutputLlabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.messageOutputLlabel.Location = new System.Drawing.Point(234, 117);
             this.messageOutputLlabel.Name = "messageOutputLlabel";
-            this.messageOutputLlabel.Size = new System.Drawing.Size(78, 29);
+            this.messageOutputLlabel.Size = new System.Drawing.Size(100, 29);
             this.messageOutputLlabel.TabIndex = 3;
-            this.messageOutputLlabel.Text = "Trade";
+            this.messageOutputLlabel.Text = "No Data";
             // 
             // messageLabel
             // 
