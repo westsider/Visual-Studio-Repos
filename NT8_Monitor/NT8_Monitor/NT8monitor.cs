@@ -16,15 +16,10 @@ using System.Net;
 namespace NT8_Monitor
 {
         /*
-         if the data is updated
-         X. Last Update = get date from last line lastUpdateOutputLabel
-         X. pasre connection, update ui messageOutputLlabel, 
-         X. if connected message, update ui connected color greed, red, connectedOutputLabel
-         X, last message, messageLabel
-         X. git commit
-         X. clean up code vars, funcs
-         4. send mail
-         5. connected since message, onlineSinceOutput
+         X. connected since message, onlineSinceOutput
+         6. send trade notification
+         X. remove mail, indicator from ninjatrader
+         8. compile and upload to server
 
          MBP Connected      at 7/22/2017 9:08:29 PM SPY
          MBP Disconnected   at 7/22/2017 9:09:03 PM SPY
@@ -40,6 +35,7 @@ namespace NT8_Monitor
         public delegate void UpdateTextInLabel(string message);
         public delegate void UpdateTextInLastUpdate(string message);
         public delegate void UpdateTextInMessage(string message);
+        public delegate void UpdateTextInLastOnline(string message);
 
         private string dirName = @"C:\Users\MBPtrader\Documents\NT_CSV";
         public string filename = "C:\\Users\\MBPtrader\\Documents\\NT_CSV\\connected.csv";
@@ -96,7 +92,10 @@ namespace NT8_Monitor
         public void parseRowDate()
         {
             string[] feilds = rows.Last().Split(null);
-            lastUpdate = feilds[3] + " " + feilds[4];
+            string timeTrim = feilds[4]; // .Substring(feilds[4].Length - 2);
+            string myString = timeTrim.Remove(timeTrim.Length - 3);
+
+            lastUpdate = feilds[3] + " " + myString + " " + feilds[5];
             message = "Connection Status";
         }
         //   File watcher magic
@@ -123,11 +122,13 @@ namespace NT8_Monitor
             getData();
             string con =  parseRowConnection(row: rows.Last());
             parseRowDate();
+            // update the labels
             connectedOutputLabel.BeginInvoke(new UpdateTextInLabel(SetLabelText), con);
             lastUpdateOutputLabel.BeginInvoke(new UpdateTextInLastUpdate(SetlastUpdateOutputLabel), lastUpdate);
-            connectedOutputLabel.BeginInvoke(new UpdateTextInMessage(SetMessageOutputLlabel), message);
+            connectedOutputLabel.BeginInvoke(new UpdateTextInMessage(SetMessageOutputLabel), message);
+            onlineSinceOutput.BeginInvoke(new UpdateTextInLastOnline(SetOnlineSinceLabel), con);
 
-            //  TODO: - Send Mail Update
+            // Send Mail Update
             string messages = "VPN " + con + " on " + lastUpdate;
             sendTheMail(emailSubject: "VPN "+con, message: messages);
             Console.WriteLine("Clicked Send Mail");
@@ -143,9 +144,18 @@ namespace NT8_Monitor
         void SetlastUpdateOutputLabel(string text) {
             lastUpdateOutputLabel.Text = text;
         }
-        void SetMessageOutputLlabel(string text){
+        void SetMessageOutputLabel(string text){
             messageOutputLlabel.Text = text;
         }
+
+        void SetOnlineSinceLabel(string text)
+        {
+            if (text == "Connected")
+            {
+                onlineSinceOutput.Text = lastUpdate;
+            }
+        }
+
 
         public void sendTheMail(string emailSubject, string message)
         {
