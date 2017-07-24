@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.VisualBasic.FileIO;
+using System.Net.Mail;
+using System.Net;
 
 
 namespace NT8_Monitor
@@ -47,6 +49,13 @@ namespace NT8_Monitor
 
         public string lastUpdate = "notSet";
         public string message = "notSet";
+        // for mail
+        public string toEmailAddress = "whansen1@mac.com";
+        public string toSmsAddress = "3103824522@tmomail.net";
+        //public string emailSubject = "Test from VS";
+        //public string emailMessage = "Message from VS";
+        public string fromEmailAddress = "trader1@tradestrat.net";
+        public string fromEmailPass = "Si062fcaa";
 
         // main function
         public NT8monitor()
@@ -119,6 +128,9 @@ namespace NT8_Monitor
             connectedOutputLabel.BeginInvoke(new UpdateTextInMessage(SetMessageOutputLlabel), message);
 
             //  TODO: - Send Mail Update
+            string messages = "VPN " + con + " on " + lastUpdate;
+            sendTheMail(emailSubject: "VPN "+con, message: messages);
+            Console.WriteLine("Clicked Send Mail");
         }
         void SetLabelText(string text)
         {
@@ -133,6 +145,31 @@ namespace NT8_Monitor
         }
         void SetMessageOutputLlabel(string text){
             messageOutputLlabel.Text = text;
+        }
+
+        public void sendTheMail(string emailSubject, string message)
+        {
+            SmtpClient smtp = new SmtpClient(fromEmailAddress);
+            smtp.Port = 25;
+            smtp.Host = "smtp.stackmail.com";
+            smtp.EnableSsl = false;
+            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+            smtp.Credentials = new NetworkCredential(fromEmailAddress, fromEmailPass);
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress(fromEmailAddress, "VPN Trade Stats");
+            mail.To.Add(toEmailAddress);
+            mail.To.Add(toSmsAddress);
+            mail.Subject = emailSubject; mail.IsBodyHtml = false; mail.Body = message;
+            try
+            {
+                smtp.Send(mail);
+                Console.WriteLine("Sent Successfully", emailSubject + " " + message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error ", ex);
+            }
+
         }
     }
 }
