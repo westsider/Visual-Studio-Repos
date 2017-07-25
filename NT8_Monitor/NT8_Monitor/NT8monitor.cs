@@ -20,6 +20,7 @@ namespace NT8_Monitor
      [X] send trade notification, working,
      [X] bug sends all trades, limit to today
      [X] remove mail, indicator from ninjatrader
+     [ ] test on market replay
      [ ] compile and upload to server
      [ ] notify if NT crashes or quits
      [ ] toggle send sms, send mail, both
@@ -43,9 +44,11 @@ namespace NT8_Monitor
         public delegate void UpdateTextInLastOnline(string message);
 
         // for VPN: 
-        public string dirName = @"C:\Users\MBPtrader\Documents\NT_CSV\";
-        //private string dirName = @"C:\Users\Administrator\Documents\NT_CSV";
-        public string filename = @"C:\Users\MBPtrader\Documents\NT_CSV\connected.csv";
+        private string dirName = @"C:\Users\Administrator\Documents\NT_CSV";
+        public string filename = @"C:\Users\Administrator\Documents\NT_CSV\connected.csv";
+        // for MPB
+        //public string dirName = @"C:\Users\MBPtrader\Documents\NT_CSV\";
+        //public string filename = @"C:\Users\MBPtrader\Documents\NT_CSV\connected.csv";
         List<string> rows = new List<string>();
         public string DirName { get => dirName; set => dirName = value; }
         List<string> myDate = new List<string>();
@@ -63,7 +66,16 @@ namespace NT8_Monitor
         public NT8monitor()
         {
             InitializeComponent();
-            CreateFileWatcher(dirName);
+            try
+            {
+                CreateFileWatcher(dirName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show( ex.ToString(),"File Import Error" );
+                Console.WriteLine("Error ", ex);
+            }
+            
         }
 
         // get data from csv file
@@ -127,7 +139,7 @@ namespace NT8_Monitor
          void OnChanged(object sender, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed, created, or deleted.
-            Console.WriteLine("File: " + e.FullPath + " " + e.ChangeType);
+            //Console.WriteLine("File: " + e.FullPath + " " + e.ChangeType);
             getData();
             string con =  parseRowConnection(row: rows.Last());
             parseRowDate();
@@ -179,21 +191,21 @@ namespace NT8_Monitor
             smtp.Credentials = new NetworkCredential(fromEmailAddress, fromEmailPass);
             MailMessage mail = new MailMessage();
             mail.From = new MailAddress(fromEmailAddress, "VPN Trade Stats");
-            mail.To.Add(toEmailAddress);
+           // mail.To.Add(toEmailAddress);
             mail.To.Add(toSmsAddress);
-            mail.Subject = emailSubject; mail.IsBodyHtml = false; mail.Body = message;
+            mail.Subject = emailSubject; mail.IsBodyHtml = true; mail.Body = message;
             try
             {
-                // smtp.Send(mail);
-                Console.WriteLine("Message if: "+DateTime.Today.ToShortDateString() + " != " + fileDate);
-                Console.WriteLine(message);
-                Console.WriteLine("Sent Successfully");
+                smtp.Send(mail);
+            //Console.WriteLine("Message if: "+DateTime.Today.ToShortDateString() + " != " + fileDate);
+            //Console.WriteLine(message);
+            //Console.WriteLine("Sent Successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error ", ex);
+                MessageBox.Show(ex.ToString(), "Mail Error" );
+                //Console.WriteLine("Error ", ex);
             }
-
         }
     }
 }
