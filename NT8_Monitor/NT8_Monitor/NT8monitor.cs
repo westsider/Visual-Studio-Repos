@@ -48,8 +48,6 @@ namespace NT8_Monitor
         // for mail
         public string toEmailAddress = "whansen1@mac.com";
         public string toSmsAddress = "3103824522@tmomail.net";
-        //public string emailSubject = "Test from VS";
-        //public string emailMessage = "Message from VS";
         public string fromEmailAddress = "trader1@tradestrat.net";
         public string fromEmailPass = "Si062fcaa";
 
@@ -96,7 +94,7 @@ namespace NT8_Monitor
         {
             string[] feilds = rows.Last().Split(null);
             string timeTrim = feilds[4]; // .Substring(feilds[4].Length - 2);
-            string myString = timeTrim.Remove(timeTrim.Length - 3);
+            string myString = timeTrim.Remove(timeTrim.Length - 3); // getting new line her try csv
 
             lastUpdate = feilds[3] + " " + myString + " " + feilds[5];
             message = "Connection Status";
