@@ -15,21 +15,25 @@ using System.Net;
 
 namespace NT8_Monitor
 {
-        /*
-         X. connected since message, onlineSinceOutput
-         6. send trade notification
-         X. remove mail, indicator from ninjatrader
-         8. compile and upload to server
+    /*
+     [X] connected since message, onlineSinceOutput
+     [X] send trade notification, working,
+     [X] bug sends all trades to txt but not showing on console
+     [ ] bug sends all trades, limit to today
+     [X] remove mail, indicator from ninjatrader
+     [ ] compile and upload to server
+     [ ] notify if NT crashes or quits
+     [ ] push connection, trades to firebase or realm
 
-         MBP Connected      at 7/22/2017 9:08:29 PM SPY
-         MBP Disconnected   at 7/22/2017 9:09:03 PM SPY
-         MBP Connected      at 7/22/2017 9:09:16 PM SPY
+     MBP Connected      at 7/22/2017 9:08:29 PM SPY
+     MBP Disconnected   at 7/22/2017 9:09:03 PM SPY
+     MBP Connected      at 7/22/2017 9:09:16 PM SPY
 
-         Last Update = lastUpdateOutputLabel
-         Message = messageLabel
-         Connection = connectedOutputLabel
-         online Since = onlineSinceLabel
-        */
+     Last Update = lastUpdateOutputLabel
+     Message = messageLabel
+     Connection = connectedOutputLabel
+     online Since = onlineSinceLabel
+    */
     public partial class NT8monitor : Form
     {
         public delegate void UpdateTextInLabel(string message);
@@ -94,7 +98,7 @@ namespace NT8_Monitor
         {
             string[] feilds = rows.Last().Split(null);
             string timeTrim = feilds[4]; // .Substring(feilds[4].Length - 2);
-            string myString = timeTrim.Remove(timeTrim.Length - 3); // getting new line her try csv
+            string myString = timeTrim.Remove(timeTrim.Length - 3); 
 
             lastUpdate = feilds[3] + " " + myString + " " + feilds[5];
             message = "Connection Status";
@@ -132,7 +136,6 @@ namespace NT8_Monitor
             // Send Mail Update
             string messages = "VPN " + con + " on " + lastUpdate;
             sendTheMail(emailSubject: "VPN "+con, message: messages);
-            Console.WriteLine("Clicked Send Mail");
         }
         void SetLabelText(string text)
         {
@@ -173,8 +176,9 @@ namespace NT8_Monitor
             mail.Subject = emailSubject; mail.IsBodyHtml = false; mail.Body = message;
             try
             {
-                smtp.Send(mail);
-                Console.WriteLine("Sent Successfully", emailSubject + " " + message);
+                // smtp.Send(mail);
+                Console.WriteLine(message);
+                Console.WriteLine("Sent Successfully");
             }
             catch (Exception ex)
             {
