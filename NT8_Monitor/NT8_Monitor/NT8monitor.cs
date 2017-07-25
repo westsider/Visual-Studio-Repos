@@ -19,7 +19,6 @@ namespace NT8_Monitor
      [X] connected since message, onlineSinceOutput
      [X] send trade notification, working,
      [X] bug sends all trades, limit to today
-     [ ] auto select account 766877849 REG
      [X] remove mail, indicator from ninjatrader
      [ ] compile and upload to server
      [ ] notify if NT crashes or quits
