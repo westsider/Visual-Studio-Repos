@@ -16,8 +16,9 @@ using System.Net;
 namespace NT8_Monitor
 {
     /*
-     [X] toggle send sms, send mail, both - not working - too buggy
-     [ ] compile and upload to server
+     [X] toggle send sms, send mail, both - not working buggy from UI
+     [X] compile and upload to server
+     [ ] testing from server 7/25/2017 4:30PM
      [ ] notify if NT crashes or quits
     */
     public struct DeviceData
@@ -53,7 +54,7 @@ namespace NT8_Monitor
         public NT8monitor()
         {
             InitializeComponent();
-            initializeMachine(sys: 0); // 0 = MBP 1 = VPN
+            initializeMachine(sys: 1); // 0 = MBP 1 = VPN
 
             try
             {
