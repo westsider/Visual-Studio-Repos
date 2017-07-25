@@ -18,12 +18,14 @@ namespace NT8_Monitor
     /*
      [X] connected since message, onlineSinceOutput
      [X] send trade notification, working,
-     [X] bug sends all trades to txt but not showing on console
-     [ ] bug sends all trades, limit to today
+     [X] bug sends all trades, limit to today
+     [ ] auto select account 766877849 REG
      [X] remove mail, indicator from ninjatrader
      [ ] compile and upload to server
      [ ] notify if NT crashes or quits
-     [ ] push connection, trades to firebase or realm
+     [ ] toggle send sms, send mail, both
+     [ ] once recovered from project push connection, trades to firebase or realm?
+
 
      MBP Connected      at 7/22/2017 9:08:29 PM SPY
      MBP Disconnected   at 7/22/2017 9:09:03 PM SPY
@@ -41,11 +43,14 @@ namespace NT8_Monitor
         public delegate void UpdateTextInMessage(string message);
         public delegate void UpdateTextInLastOnline(string message);
 
-        private string dirName = @"C:\Users\MBPtrader\Documents\NT_CSV";
-        public string filename = "C:\\Users\\MBPtrader\\Documents\\NT_CSV\\connected.csv";
+        // for VPN: 
+        public string dirName = @"C:\Users\MBPtrader\Documents\NT_CSV\";
+        //private string dirName = @"C:\Users\Administrator\Documents\NT_CSV";
+        public string filename = @"C:\Users\MBPtrader\Documents\NT_CSV\connected.csv";
         List<string> rows = new List<string>();
         public string DirName { get => dirName; set => dirName = value; }
         List<string> myDate = new List<string>();
+        public string fileDate;
 
         public string lastUpdate = "notSet";
         public string message = "notSet";
@@ -98,10 +103,10 @@ namespace NT8_Monitor
         {
             string[] feilds = rows.Last().Split(null);
             string timeTrim = feilds[4]; // .Substring(feilds[4].Length - 2);
-            string myString = timeTrim.Remove(timeTrim.Length - 3); 
-
+            string myString = timeTrim.Remove(timeTrim.Length - 3);
             lastUpdate = feilds[3] + " " + myString + " " + feilds[5];
             message = "Connection Status";
+            fileDate = feilds[3]; // to eliminate mail of proir trades
         }
         //   File watcher magic
         public void CreateFileWatcher(string path)
@@ -133,9 +138,13 @@ namespace NT8_Monitor
             connectedOutputLabel.BeginInvoke(new UpdateTextInMessage(SetMessageOutputLabel), message);
             onlineSinceOutput.BeginInvoke(new UpdateTextInLastOnline(SetOnlineSinceLabel), con);
 
-            // Send Mail Update
+            // Send Mail Update of records with dodays date
             string messages = "VPN " + con + " on " + lastUpdate;
-            sendTheMail(emailSubject: "VPN "+con, message: messages);
+            if (DateTime.Today.ToShortDateString()  ==  fileDate)
+            {
+                sendTheMail(emailSubject: "VPN " + con, message: messages);
+            }
+            
         }
         void SetLabelText(string text)
         {
@@ -177,6 +186,7 @@ namespace NT8_Monitor
             try
             {
                 // smtp.Send(mail);
+                Console.WriteLine("Message if: "+DateTime.Today.ToShortDateString() + " != " + fileDate);
                 Console.WriteLine(message);
                 Console.WriteLine("Sent Successfully");
             }
