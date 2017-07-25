@@ -16,46 +16,33 @@ using System.Net;
 namespace NT8_Monitor
 {
     /*
-     [X] connected since message, onlineSinceOutput
-     [X] send trade notification, working,
-     [X] bug sends all trades, limit to today
-     [X] remove mail, indicator from ninjatrader
-     [ ] test on market replay
+     [X] toggle send sms, send mail, both - not working - too buggy
      [ ] compile and upload to server
      [ ] notify if NT crashes or quits
-     [ ] toggle send sms, send mail, both
-     [ ] once recovered from project push connection, trades to firebase or realm?
-
-
-     MBP Connected      at 7/22/2017 9:08:29 PM SPY
-     MBP Disconnected   at 7/22/2017 9:09:03 PM SPY
-     MBP Connected      at 7/22/2017 9:09:16 PM SPY
-
-     Last Update = lastUpdateOutputLabel
-     Message = messageLabel
-     Connection = connectedOutputLabel
-     online Since = onlineSinceLabel
     */
+    public struct DeviceData
+    {
+        public string dirName { get; set; }
+        public string filename { get; set; }
+        public string machine { get; set; }
+
+    }
+    public struct UpdateData
+    {
+        public string fileDate { get; set; }
+        public string lastUpdate { get; set; }
+        public string message { get; set; }
+    }
+
     public partial class NT8monitor : Form
     {
+        private DeviceData deviceData = new DeviceData {};
+        private UpdateData updateData = new UpdateData { };
         public delegate void UpdateTextInLabel(string message);
         public delegate void UpdateTextInLastUpdate(string message);
         public delegate void UpdateTextInMessage(string message);
         public delegate void UpdateTextInLastOnline(string message);
-
-        // for VPN: 
-        private string dirName = @"C:\Users\Administrator\Documents\NT_CSV";
-        public string filename = @"C:\Users\Administrator\Documents\NT_CSV\connected.csv";
-        // for MPB
-        //public string dirName = @"C:\Users\MBPtrader\Documents\NT_CSV\";
-        //public string filename = @"C:\Users\MBPtrader\Documents\NT_CSV\connected.csv";
         List<string> rows = new List<string>();
-        public string DirName { get => dirName; set => dirName = value; }
-        List<string> myDate = new List<string>();
-        public string fileDate;
-
-        public string lastUpdate = "notSet";
-        public string message = "notSet";
         // for mail
         public string toEmailAddress = "whansen1@mac.com";
         public string toSmsAddress = "3103824522@tmomail.net";
@@ -66,9 +53,11 @@ namespace NT8_Monitor
         public NT8monitor()
         {
             InitializeComponent();
+            initializeMachine(sys: 0); // 0 = MBP 1 = VPN
+
             try
             {
-                CreateFileWatcher(dirName);
+                CreateFileWatcher( deviceData.dirName );
             }
             catch (Exception ex)
             {
@@ -78,11 +67,26 @@ namespace NT8_Monitor
             
         }
 
+        public void initializeMachine(int sys)
+        { 
+            if ( sys == 0 )
+            {
+                deviceData.machine = "MBP";
+                deviceData.dirName = @"C:\Users\MBPtrader\Documents\NT_CSV\";
+                deviceData.filename = @"C:\Users\MBPtrader\Documents\NT_CSV\connected.csv";
+            } else
+            {
+                deviceData.machine = "VPN";
+                deviceData.dirName = @"C:\Users\Administrator\Documents\";
+                deviceData.filename = @"C:\Users\Administrator\Documents\connected.csv";
+            }
+        }
+
         // get data from csv file
         public void getData()
         {
             //// Read the file and display it line by line.
-            using (TextFieldParser parser = new TextFieldParser(path: filename))
+            using (TextFieldParser parser = new TextFieldParser(path: deviceData.filename))
             {
                 parser.TextFieldType = FieldType.Delimited;
                 parser.SetDelimiters(",");
@@ -115,9 +119,9 @@ namespace NT8_Monitor
             string[] feilds = rows.Last().Split(null);
             string timeTrim = feilds[4]; // .Substring(feilds[4].Length - 2);
             string myString = timeTrim.Remove(timeTrim.Length - 3);
-            lastUpdate = feilds[3] + " " + myString + " " + feilds[5];
-            message = "Connection Status";
-            fileDate = feilds[3]; // to eliminate mail of proir trades
+            updateData.lastUpdate = feilds[3] + " " + myString + " " + feilds[5];
+            updateData.message = "Connection Status";
+            updateData.fileDate = feilds[3]; // to eliminate mail of proir trades
         }
         //   File watcher magic
         public void CreateFileWatcher(string path)
@@ -145,15 +149,15 @@ namespace NT8_Monitor
             parseRowDate();
             // update the labels
             connectedOutputLabel.BeginInvoke(new UpdateTextInLabel(SetLabelText), con);
-            lastUpdateOutputLabel.BeginInvoke(new UpdateTextInLastUpdate(SetlastUpdateOutputLabel), lastUpdate);
-            connectedOutputLabel.BeginInvoke(new UpdateTextInMessage(SetMessageOutputLabel), message);
+            lastUpdateOutputLabel.BeginInvoke(new UpdateTextInLastUpdate(SetlastUpdateOutputLabel), updateData.lastUpdate);
+            connectedOutputLabel.BeginInvoke(new UpdateTextInMessage(SetMessageOutputLabel), updateData.message);
             onlineSinceOutput.BeginInvoke(new UpdateTextInLastOnline(SetOnlineSinceLabel), con);
 
             // Send Mail Update of records with dodays date
-            string messages = "VPN " + con + " on " + lastUpdate;
-            if (DateTime.Today.ToShortDateString()  ==  fileDate)
+            string messages = deviceData.machine + " " + con + " on " + updateData.lastUpdate;
+            if (DateTime.Today.ToShortDateString()  == updateData.fileDate)
             {
-                sendTheMail(emailSubject: "VPN " + con, message: messages);
+                sendTheMail(emailSubject: deviceData.machine + " " + con, message: messages);
             }
             
         }
@@ -176,7 +180,7 @@ namespace NT8_Monitor
         {
             if (text == "Connected")
             {
-                onlineSinceOutput.Text = lastUpdate;
+                onlineSinceOutput.Text = updateData.lastUpdate;
             }
         }
 
@@ -193,13 +197,13 @@ namespace NT8_Monitor
             mail.From = new MailAddress(fromEmailAddress, "VPN Trade Stats");
            // mail.To.Add(toEmailAddress);
             mail.To.Add(toSmsAddress);
-            mail.Subject = emailSubject; mail.IsBodyHtml = true; mail.Body = message;
+            mail.Subject = emailSubject; mail.IsBodyHtml = true; mail.Body = message; // html true allows sms to get same from address
             try
             {
                 smtp.Send(mail);
-            //Console.WriteLine("Message if: "+DateTime.Today.ToShortDateString() + " != " + fileDate);
-            //Console.WriteLine(message);
-            //Console.WriteLine("Sent Successfully");
+                //Console.WriteLine("Message if: "+DateTime.Today.ToShortDateString() + " != " + fileDate);
+                //Console.WriteLine(message);
+                //Console.WriteLine("Sent Successfully");
             }
             catch (Exception ex)
             {
